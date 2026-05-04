@@ -1,0 +1,13 @@
+[project]
+name = "chinese-high-speed-railways"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+    "osm-retrieve",
+    "pyrosm>=0.6.2",
+]
+
+[tool.uv.sources]
+osm-retrieve = { path = "../../codes/github-mf/maurofaccin@osm-retrieve-networks" }
