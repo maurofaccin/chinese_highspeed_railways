@@ -1,4 +1,8 @@
-from collections import Counter
+"""This script will check all the station in `./chinese_high-speed_railways/high-speed trains operation data.csv.gz`
+and find the relevant geographic position and corresponding OSM representation.
+"""
+
+import json
 from pathlib import Path
 
 import geopandas as gpd
@@ -7,7 +11,7 @@ import pandas as pd
 import pyproj
 from shapely import LineString, Point
 
-import osm_chinese_railways
+import chsr
 
 dictionary = {"Zhongqing": "Chongqing"}
 suffixes = {
@@ -120,8 +124,9 @@ def strip_suffix(name: str) -> list[str]:
     return names
 
 
-def main() -> None:
+def main():
     """Do the main."""
+    # First guess
     stations = pd.read_csv("./chinese_high-speed_railways/stations_lucrezia.csv")
     stations["names"] = [
         strip_suffix(n["english_name"]) + strip_suffix(n["station_name_original"])
@@ -137,11 +142,11 @@ def main() -> None:
         stations.loc[MANUAL.index, k] = MANUAL[k]
 
     # Data from OpenStreetMap
-    osm_stations = gpd.read_file(osm_chinese_railways.CN_RAILS, layer="points", crs=4326).set_index(
+    osm_stations = gpd.read_file(chsr.CN_RAILS, layer="points", crs=4326).set_index(
         "id", drop=True
     )[["name", "name:en", "geometry"]]
     # Manual adjustments
-    osm_stations = pd.concat([osm_stations, ADDITIONAL])
+    osm_stations = pd.concat([osm_stations, ADDITIONAL.set_index("osmid")])
 
     # Get a mapping from names, to osm indx
     osm_names = dict(zip(osm_stations["name:en"], osm_stations.index))
@@ -176,10 +181,28 @@ def main() -> None:
         ids.append(_lids)
 
     stations["osmid"] = ids
+
+    # deal with OSM IDs duplicates.
+    dups = stations["osmid"].value_counts()
+    dups = dups[dups > 1]
+    dups = stations[stations["osmid"].isin(dups.index)]
     print("Test if there are stations assigned to the same point.")
     print(stations["osmid"].value_counts())
     print("WARNING: The following are mappend to the same station:")
-    print(stations[stations["osmid"] == stations["osmid"].value_counts().index[0]])
+    print(dups)
+
+    # %%
+
+    rename_dups = {
+        sn: snames[0]
+        for _, snames in dups.reset_index()[["station_name_original", "osmid"]]
+        .groupby("osmid")
+        .agg(list)["station_name_original"]
+        .items()
+        for sn in snames[1:]
+    }
+    # %%
+    stations = stations.drop_duplicates(subset=["osmid"], keep="first", inplace=False)
 
     not_found = stations[stations["osmid"].isna()]
     if len(not_found) > 0:
@@ -218,7 +241,7 @@ def main() -> None:
             pd.concat(
                 [stations.reset_index().set_index("osmid"), osm_stations.loc[stations["osmid"]]],
                 axis=1,
-            ).drop(columns="osmid"),
+            ),
             crs=4326,
         )
         .reset_index()
@@ -233,7 +256,7 @@ def main() -> None:
                     osm_stations.loc[split_stations["osmid"]],
                 ],
                 axis=1,
-            ).drop(columns="osmid"),
+            ),
             crs=4326,
         )
         .reset_index()
@@ -241,8 +264,10 @@ def main() -> None:
         .rename(columns={"index": "osmid"})
     )
 
+    # Deal with connections
     geod = pyproj.Geod(ellps="WGS84")
     adj = pd.read_csv("./chinese_high-speed_railways/adj.csv")
+    adj = adj.map(lambda x: rename_dups.get(x, x)).groupby(["source", "target"]).sum().reset_index()
     for splitted, new_stations in split_stations.groupby("splitted"):
         closest = [
             min(
@@ -281,23 +306,14 @@ def main() -> None:
     stations = gpd.GeoDataFrame(stations, crs=4326)
     stations["degree"] = adj["source"].value_counts()
 
-    if False:
-        first = "Jinjiang"
-        print(first)
-        print(stations.loc[first])
-        neigs = adj[adj["source"] == first]["target"]
-        print(neigs)
-        print(stations.loc[neigs, ["english_name", "city", "province", "zh_name"]])
-        stations["color"] = 0
-        stations.loc[neigs.tolist(), "color"] = 1
-        stations.loc[first, "color"] = 2
-
     # write to file
     stations["osmid"] = stations["osmid"].astype("int")
     stations.drop(columns=["names", "longitude", "latitude"], errors="ignore").to_file(
-        Path("stations.gpkg"), layer="points", mode="w"
+        Path("data/stations.gpkg"), layer="points", mode="w"
     )
-    adj.to_file(Path("stations.gpkg"), layer="lines", mode="w")
+    adj.to_file(Path("data/stations.gpkg"), layer="lines", mode="w")
+    with Path("data/stations_dups.json").open("w") as fout:
+        json.dump(rename_dups, fout)
 
 
 if __name__ == "__main__":

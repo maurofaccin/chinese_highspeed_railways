@@ -1,9 +1,11 @@
 import pandas as pd
 
+import chsr
+
 
 def main() -> None:
     """Do the main."""
-    data = pd.read_csv("./chinese_high-speed_railways/high-speed trains operation data.csv.gz")
+    data = pd.read_csv(chsr.DATAPATH)
     data["station_name"] = data["station_name"].str.replace(" Railway Station", "")
     print(data)
     data = data[["station_name", "station_order"]]
