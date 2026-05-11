@@ -4,10 +4,7 @@ import geopandas as gpd
 import osm_nets as osm
 import pandas as pd
 
-DATAPATH = Path(
-    "~/curro/data/transport/chinese_high-speed_railways/high-speed trains operation data.csv.gz"
-)
-CN_RAILS = Path("~/codes/github-mf/maurofaccin@osm-retrieve-networks/src/osm_nets/CN_railways.gpkg")
+from chsr import CN_RAILS, DATAPATH
 
 
 def load_trains() -> pd.DataFrame:
@@ -59,11 +56,11 @@ def load_graph() -> osm.Graph:
 
 def main() -> None:
     """Do the main."""
-    d = load_trains()
-    n = load_nodes(d.columns)
-    g = load_graph()
-    print(d)
-    print(d.sum(axis=0).sort_values())
+    delay_at_station = load_trains()
+    print(delay_at_station)
+    print(delay_at_station.sum(axis=0).sort_values())
+    # n = load_nodes(d.columns)
+    # g = load_graph()
 
 
 if __name__ == "__main__":
