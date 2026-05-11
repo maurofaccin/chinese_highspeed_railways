@@ -16,3 +16,9 @@ Output: `./chinese_high-speed_railways/adj.csv`
 Use OSM and manual adjustments to fix multiple stations with the same names or one station with multiple names. Add geographic location.
 
 output: `./data/stations.gpkg`, `./data/stations_dups.json`
+
+
+### 3.
+
+`./prepare_data.py`:
+create the graph with transitions.
