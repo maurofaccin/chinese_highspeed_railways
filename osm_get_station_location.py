@@ -13,7 +13,7 @@ from shapely import LineString, Point
 
 import chsr
 
-dictionary = {"Zhongqing": "Chongqing"}
+dictionary = {"Zhongqing": "Chongqing", "Wuyishandong": "Nanpingshi"}
 suffixes = {
     "qing": "?",
     "xian": "county",
@@ -40,10 +40,10 @@ MANUAL = pd.DataFrame(
         {"name": "Jiaxian", "osmid": 5575721523},
         {"name": "Jingxian", "osmid": 9524548104},
         {"name": "Lanshanxi", "osmid": 9549447314},
-        {"name": "Luanhe", "osmid": 7781338009},
+        {"name": "Luanhe", "osmid": 9276824793},
         {"name": "Lufeng", "osmid": 1732278092},
         {"name": "Lushan", "osmid": 1769587482},
-        {"name": "Minchinan", "osmid": 3006156365},
+        {"name": "Minchinan", "osmid": 742843780},
         {"name": "Nanfeng", "osmid": 2501345649},
         {"name": "Nanpingbei", "osmid": 7014731878},
         {"name": "Nixi", "osmid": 5774489263},
@@ -63,12 +63,13 @@ MANUAL = pd.DataFrame(
         {"name": "Weihexi", "osmid": 1603990260},
         {"name": "Wulongbeidong", "osmid": 9179735854},
         {"name": "Wuyishandong", "osmid": 7252546318},
+        {"name": "Nanpingshi", "osmid": 7252546318},
         {"name": "Wuyuan", "osmid": 2517241085},
         {"name": "Xianyangqindu", "osmid": 1532510499},
         {"name": "Xidu", "osmid": 5559297478},
         {"name": "Xifeng", "osmid": 1763164530},
         {"name": "Xinganbei", "osmid": 7830203476},
-        {"name": "Xinjinan", "osmid": 2329491735},
+        {"name": "Xinjinan", "osmid": 7341266742},
         {"name": "Xiuwenxian", "osmid": 8211935366},
         {"name": "Xixianbei", "osmid": 10666136336},
         {"name": "Yanling", "osmid": 4732069359},
@@ -77,7 +78,7 @@ MANUAL = pd.DataFrame(
         {"name": "Yiyang", "osmid": 655354700},
         {"name": "Yongjia", "osmid": 7714110150},
         {"name": "Yongtai", "osmid": 2451353649},
-        {"name": "Yuhang", "osmid": 9850732096},
+        {"name": "Yuhang", "osmid": 9866117271},
         {"name": "Yujiangbei", "osmid": 13061379939},
         {"name": "Zaozhuang", "osmid": 3163707180},
         {"name": "Zhaodong", "osmid": 3701360574},
@@ -94,10 +95,18 @@ MANUAL = pd.DataFrame(
         {"name": "Guilin", "osmid": 626322669},
         {"name": "Jinjiang", "osmid": 7778190320},
         {"name": "Yixing", "osmid": 7260208795},
+        {"name": "Xinyangdong", "osmid": 8093975737},
+        {"name": "Huhehaotedong", "osmid": 1670013561},
+        {"name": "Huhehaote", "osmid": 843121428},
+        {"name": "Xiapu", "osmid": 5617318079},
+        {"name": "Dingzhoudong", "osmid": 8401357513},
+        {"name": "Bishan", "osmid": 3500459008},
+        {"name": "Guanzhishan", "osmid": 2838818230},
     ],
     columns=["osmid", "name", "zh_name"],
 ).set_index("name")
 MANUAL["zh_name"] = MANUAL["zh_name"].astype("str")
+
 
 ADDITIONAL = pd.DataFrame(
     [
